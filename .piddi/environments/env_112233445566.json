@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "id": "env_112233445566",
+  "name": "Secret Test Env",
+  "description": null,
+  "variables": [
+    {
+      "id": null,
+      "key": "userPass",
+      "value": null,
+      "enabled": true,
+      "is_secret": true,
+      "description": null
+    }
+  ]
+}

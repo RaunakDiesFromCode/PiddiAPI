@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "piddi"
+version = "0.1.0"
+description = "Fast, local-first API testing engine"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.30.0",
+    "httpx[http2]>=0.27.0",
+    "pydantic>=2.7.0",
+    "aiofiles>=24.1.0",
+    "python-multipart>=0.0.9",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.4.0",
+]
+
+[project.scripts]
+piddi = "piddi.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["piddi*"]
+
+[tool.setuptools.package-data]
+piddi = ["static/**/*"]
+
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
