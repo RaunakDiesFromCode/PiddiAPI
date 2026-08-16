@@ -1,0 +1,5 @@
+# PiddiAPI Local Secrets (Never commit credentials to Git)
+*.secrets.json
+*.local.json
+.*.tmp*
+.tmp*
