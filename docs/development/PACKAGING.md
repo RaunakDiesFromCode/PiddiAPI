@@ -1,6 +1,6 @@
 # PiddiAPI Packaging & Distribution Specification
 
-This document details the internal architecture, bundle layout, launcher mechanisms, and verification standards used to package PiddiAPI for native desktop distribution.
+This document details the internal architecture, bundle layout, launcher mechanisms, application icon pipeline, and verification standards used to package PiddiAPI for native desktop distribution across macOS, Windows, and Linux.
 
 ---
 
@@ -15,7 +15,43 @@ PiddiAPI uses **PyInstaller in `ONEDIR` mode** to produce self-contained native 
 
 ---
 
-## 2. macOS Application Bundle Layout
+## 2. Application Icon Pipeline
+
+PiddiAPI maintains a single source-of-truth master artwork:
+- **Canonical Master Artwork**: `assets/PiddiAPIIcon.png` (1254×1254 RGBA 32-bit PNG)
+
+From this master image, platform-specific icon derivatives are reproducibly generated via `scripts/generate_icons.py`:
+
+```text
+                  assets/PiddiAPIIcon.png (Master Artwork)
+                             │
+         ┌───────────────────┼───────────────────┐
+         ▼                   ▼                   ▼
+assets/PiddiAPI.icns  assets/PiddiAPI.ico  assets/PiddiAPI.png
+  (Apple Iconset)      (Windows Multi-Res)     (512×512 Linux)
+         │                   │                   │
+         ▼                   ▼                   ▼
+    macOS .app          Windows .exe        Linux Desktop
+```
+
+### 2.1. Platform Icon Specifications
+
+| Platform | Format & Path | Resolutions Included | Packaging Mechanism |
+| :--- | :--- | :--- | :--- |
+| **macOS** | `assets/PiddiAPI.icns` | 16×16, 32×32, 64×64, 128×128, 256×256, 512×512, 1024×1024 (with `@2x` retina variants) | Copied into `Contents/Resources/PiddiAPI.icns` and declared in `Info.plist` |
+| **Windows** | `assets/PiddiAPI.ico` | 16×16, 24×24, 32×32, 48×48, 64×64, 128×128, 256×256 (32-bit RGBA PNG container) | Embedded as PE binary icon via PyInstaller `EXE(..., icon="assets/PiddiAPI.ico")` |
+| **Linux** | `assets/PiddiAPI.png` | 512×512 High-Res RGBA PNG | Included in static data directory and referenced by FreeDesktop `.desktop` entry |
+
+### 2.2. Regenerating Platform Icons
+To manually rebuild all platform icons from `assets/PiddiAPIIcon.png`:
+```bash
+python scripts/generate_icons.py
+```
+`scripts/build_package.py` automatically checks for platform icons before every build and regenerates them if missing.
+
+---
+
+## 3. macOS Application Bundle Layout
 
 On macOS, the build generates a standard Apple Application Bundle at `dist/PiddiAPI.app`:
 
@@ -27,6 +63,7 @@ dist/PiddiAPI.app/
     │   ├── PiddiAPI                  # Executable bash launcher wrapper (mode 0755)
     │   └── piddi_engine              # Compiled PyInstaller entrypoint executable
     └── Resources/                    # App metadata and icon assets
+        └── PiddiAPI.icns             # Multi-resolution macOS Application Icon
 ```
 
 Alongside the `.app`, PyInstaller produces the frozen engine directory:
@@ -49,7 +86,7 @@ dist/piddi_engine/
 
 ---
 
-## 3. macOS Launcher Script & Terminal Integration
+## 4. macOS Launcher Script & Terminal Integration
 
 To satisfy the requirement that double-clicking `PiddiAPI.app` in Finder opens an interactive Terminal session:
 
@@ -105,15 +142,16 @@ To satisfy the requirement that double-clicking `PiddiAPI.app` in Finder opens a
    exit 0
    ```
 
-### 3.1. `Info.plist` Invariants
+### 4.1. `Info.plist` Invariants
 The bundle's `Info.plist` is explicitly validated to ensure:
+- `CFBundleIconFile = "PiddiAPI.icns"`
 - `LSBackgroundOnly = False` (Application is not a hidden background daemon)
 - `LSUIElement = False` (Application is a standard user application)
 - `CFBundlePackageType = "APPL"`
 
 ---
 
-## 4. Path Resolution: Frozen vs Source
+## 5. Path Resolution: Frozen vs Source
 
 PiddiAPI dynamically detects its execution environment via `piddi/paths.py`:
 
@@ -150,7 +188,7 @@ def get_user_piddi_home() -> Path:
 
 ---
 
-## 5. Build Verification & Integrity Manifest
+## 6. Build Verification & Integrity Manifest
 
 Every packaging run produces `dist/BUILD_MANIFEST.json`, which computes SHA-256 digests of all bundled assets and asserts key security invariants:
 
@@ -158,27 +196,28 @@ Every packaging run produces `dist/BUILD_MANIFEST.json`, which computes SHA-256 
 {
   "app_name": "PiddiAPI",
   "version": "0.1.0",
-  "build_timestamp": "2026-08-16T10:02:41Z",
+  "build_timestamp": "2026-08-16T11:13:30Z",
   "python_version": "3.14.0",
   "platform": "darwin-arm64",
   "bundle_type": "macOS .app Bundle",
   "bundle_path": "dist/PiddiAPI.app",
   "checks": {
+    "icon_present": true,
     "static_index_present": true,
     "static_js_present": true,
     "zero_user_secrets": true,
     "zero_dot_piddi_in_bundle": true
   },
-  "total_bundle_files": 312
+  "total_bundle_files": 313
 }
 ```
 
 ---
 
-## 6. Platform Implementation Status
+## 7. Platform Implementation & Verification Status
 
-| Platform | Target Package | Status | Verification Notes |
-| :--- | :--- | :--- | :--- |
-| **macOS (Apple Silicon & Intel)** | `PiddiAPI.app` (ONEDIR) | **IMPLEMENTED & VERIFIED** | Tested on macOS Sonoma/Sequoia. Finder double-click -> Terminal -> Browser -> Ctrl+C shutdown verified. |
-| **Windows** | `PiddiAPI.exe` (ONEDIR) | **IMPLEMENTED** (Spec Ready) | `piddi.spec` supports Windows `console=True`. |
-| **Linux** | `PiddiAPI` executable (ONEDIR) | **IMPLEMENTED** (Spec Ready) | `piddi.spec` supports Linux x86_64 / ARM64. |
+| Platform | Target Package | Icon | Status | Verification Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| **macOS (Apple Silicon & Intel)** | `PiddiAPI.app` (ONEDIR) | `PiddiAPI.icns` | **BUILT & RUNTIME VERIFIED** | Tested on macOS. Icon verified in Finder/Dock, Terminal launcher, readiness polling, browser opening, and graceful shutdown verified. |
+| **Windows** | `PiddiAPI.exe` (ONEDIR) | `PiddiAPI.ico` | **CONFIGURED (Spec Ready)** | `piddi.spec` configured with `PiddiAPI.ico` and `console=True`. |
+| **Linux** | `PiddiAPI` executable (ONEDIR) | `PiddiAPI.png` | **CONFIGURED (Spec Ready)** | `piddi.spec` configured with `PiddiAPI.png` data embedding and `console=True`. |

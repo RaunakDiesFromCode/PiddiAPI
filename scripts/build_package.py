@@ -2,18 +2,21 @@
 
 Purpose:
   Automates the complete production build workflow:
-  1. Frontend compilation check / Vite build (`npm run build` -> `piddi/static/`).
-  2. PyInstaller ONEDIR bundle compilation using `piddi.spec`.
-  3. Native macOS Terminal launcher integration (`Contents/MacOS/PiddiAPI`).
-  4. Info.plist property verification (`LSBackgroundOnly=False`, `LSUIElement=False`).
-  5. Security invariant checks (zero `.piddi/`, `.env`, or `*.secrets.json` files in the bundle).
-  6. Generation of cryptographic `dist/BUILD_MANIFEST.json` with SHA-256 digests.
+  1. Platform application icon verification & generation from canonical master artwork (`assets/PiddiAPIIcon.png`).
+  2. Frontend compilation check / Vite build (`npm run build` -> `piddi/static/`).
+  3. PyInstaller ONEDIR bundle compilation using `piddi.spec`.
+  4. Platform-aware packaging (macOS `PiddiAPI.app` with Terminal launcher, Windows `PiddiAPI.exe`, Linux ELF package).
+  5. macOS Info.plist property verification (`CFBundleIconFile`, `LSBackgroundOnly=False`, `LSUIElement=False`).
+  6. Security invariant checks (zero `.piddi/`, `.env`, or `*.secrets.json` files in the bundle).
+  7. Generation of cryptographic `dist/BUILD_MANIFEST.json` with SHA-256 digests.
 
 Usage:
   python scripts/build_package.py [--rebuild-frontend]
 
 Target Outputs:
   - macOS: `dist/PiddiAPI.app`
+  - Windows: `dist/PiddiAPI/`
+  - Linux: `dist/PiddiAPI/`
   - Manifest: `dist/BUILD_MANIFEST.json`
 """
 
@@ -21,10 +24,13 @@ import hashlib
 import json
 import os
 import platform
+import shutil
 import subprocess
 import sys
 import time
 from pathlib import Path
+
+from generate_icons import generate_all_icons
 
 
 def compute_sha256(file_path: Path) -> str:
@@ -44,12 +50,45 @@ def main() -> int:
     print("  PiddiAPI Phase 6 Native Package Builder")
     print("=" * 70)
 
-    # 1. Verify / Build Frontend
+    # 1. Verify & Generate Platform Icons
+    print("[1/5] Verifying platform-specific application icons...")
+    assets_dir = repo_root / "assets"
+    master_icon = assets_dir / "PiddiAPIIcon.png"
+
+    if not master_icon.exists():
+        print(f"      ERROR: Master icon {master_icon} missing!", file=sys.stderr)
+        return 1
+
+    mac_icon = assets_dir / "PiddiAPI.icns"
+    win_icon = assets_dir / "PiddiAPI.ico"
+    linux_icon = assets_dir / "PiddiAPI.png"
+
+    needs_icon_gen = False
+    if (
+        sys.platform == "darwin"
+        and not mac_icon.exists()
+        or sys.platform.startswith("win")
+        and not win_icon.exists()
+        or sys.platform.startswith("linux")
+        and not linux_icon.exists()
+    ):
+        needs_icon_gen = True
+
+    if needs_icon_gen or not mac_icon.exists() or not win_icon.exists() or not linux_icon.exists():
+        print("      Generating missing platform icon derivatives...")
+        if not generate_all_icons(assets_dir):
+            print("      ERROR: Platform icon generation failed!", file=sys.stderr)
+            return 1
+        print("      Platform icons generated successfully.")
+    else:
+        print("      Verified existing platform icons (macOS ICNS, Windows ICO, Linux PNG).")
+
+    # 2. Verify / Build Frontend
     static_dir = repo_root / "piddi" / "static"
     index_html = static_dir / "index.html"
 
     if not index_html.exists() or "--rebuild-frontend" in sys.argv:
-        print("[1/4] Building frontend assets with Vite...")
+        print("[2/5] Building frontend assets with Vite...")
         frontend_dir = repo_root / "frontend"
         try:
             subprocess.run(
@@ -64,10 +103,10 @@ def main() -> int:
             print(f"      ERROR: Frontend build failed: {e.stderr}", file=sys.stderr)
             return 1
     else:
-        print("[1/4] Verified existing frontend static bundle in piddi/static/.")
+        print("[2/5] Verified existing frontend static bundle in piddi/static/.")
 
-    # 2. Run PyInstaller
-    print("[2/4] Running PyInstaller packaging (ONEDIR mode)...")
+    # 3. Run PyInstaller
+    print("[3/5] Running PyInstaller packaging (ONEDIR mode)...")
     dist_dir = repo_root / "dist"
 
     spec_file = repo_root / "piddi.spec"
@@ -92,13 +131,18 @@ def main() -> int:
         return 1
     print("      PyInstaller packaging SUCCESS.")
 
-    # 3. Verify Bundle Integrity & Security Invariants
-    print("[3/4] Verifying bundle integrity and security invariants...")
+    # 4. Verify Bundle Integrity & Security Invariants
+    print("[4/5] Verifying bundle integrity and security invariants...")
+
+    has_valid_icon = False
 
     if sys.platform == "darwin" and (dist_dir / "PiddiAPI.app").exists():
         target_bundle = dist_dir / "PiddiAPI.app"
         bundle_type = "macOS .app Bundle"
         macos_dir = target_bundle / "Contents" / "MacOS"
+        resources_dir = target_bundle / "Contents" / "Resources"
+        resources_dir.mkdir(parents=True, exist_ok=True)
+
         launcher_script = macos_dir / "PiddiAPI"
         script_content = r"""#!/bin/bash
 # PiddiAPI Native Terminal Launcher
@@ -159,24 +203,39 @@ exit 0
         launcher_script.chmod(0o755)
         print("      Created visible Terminal launcher in Contents/MacOS/PiddiAPI.")
 
-        # Ensure Info.plist has exact LSBackgroundOnly=False, LSUIElement=False, CFBundlePackageType=APPL
+        # Ensure ICNS icon is installed in Contents/Resources/
+        target_icns = resources_dir / "PiddiAPI.icns"
+        if mac_icon.exists():
+            shutil.copyfile(mac_icon, target_icns)
+            has_valid_icon = True
+            print("      Installed PiddiAPI.icns in Contents/Resources/PiddiAPI.icns.")
+
+        # Ensure Info.plist has exact CFBundleIconFile, LSBackgroundOnly=False, LSUIElement=False, CFBundlePackageType=APPL
         plist_file = target_bundle / "Contents" / "Info.plist"
         if plist_file.exists():
             import plistlib
 
             with plist_file.open("rb") as fp:
                 plist_data = plistlib.load(fp)
+            plist_data["CFBundleIconFile"] = "PiddiAPI.icns"
             plist_data["LSBackgroundOnly"] = False
             plist_data["LSUIElement"] = False
             plist_data["CFBundlePackageType"] = "APPL"
             with plist_file.open("wb") as fp:
                 plistlib.dump(plist_data, fp)
             print(
-                "      Verified and synced Info.plist (LSBackgroundOnly=False, LSUIElement=False)."
+                "      Verified and synced Info.plist (CFBundleIconFile=PiddiAPI.icns, LSBackgroundOnly=False)."
             )
     else:
         target_bundle = dist_dir / "PiddiAPI"
         bundle_type = "Application Directory"
+        if (
+            sys.platform.startswith("win")
+            and win_icon.exists()
+            or sys.platform.startswith("linux")
+            and linux_icon.exists()
+        ):
+            has_valid_icon = True
 
     if not target_bundle.exists():
         print(f"      ERROR: Expected target {target_bundle} not found!", file=sys.stderr)
@@ -225,8 +284,8 @@ exit 0
 
     print("      Bundle integrity verified: static UI assets present, 0 user secrets in bundle.")
 
-    # 4. Generate Build Manifest
-    print("[4/4] Writing verifiable BUILD_MANIFEST.json...")
+    # 5. Generate Build Manifest
+    print("[5/5] Writing verifiable BUILD_MANIFEST.json...")
     manifest_data = {
         "app_name": "PiddiAPI",
         "version": "0.1.0",
@@ -236,6 +295,7 @@ exit 0
         "bundle_type": bundle_type,
         "bundle_path": str(target_bundle.relative_to(repo_root)),
         "checks": {
+            "icon_present": has_valid_icon,
             "static_index_present": has_index_html,
             "static_js_present": has_js_assets,
             "zero_user_secrets": len(security_violations) == 0,

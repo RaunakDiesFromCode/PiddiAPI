@@ -26,6 +26,9 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+*.iconset/
+*.icns.tmp
+*.ico.tmp
 
 # ------------------------------------------------------------------------------
 # 2. Virtual Environments

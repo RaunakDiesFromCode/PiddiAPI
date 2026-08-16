@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""PyInstaller ONEDIR build specification for PiddiAPI."""
+"""PyInstaller ONEDIR build specification for PiddiAPI (Cross-Platform)."""
 
 import sys
 from pathlib import Path
@@ -8,10 +8,16 @@ block_cipher = None
 
 repo_root = Path.cwd()
 static_src = repo_root / "piddi" / "static"
+assets_dir = repo_root / "assets"
 
 datas = []
 if static_src.exists():
     datas.append((str(static_src), "piddi/static"))
+
+# Linux / general platform desktop icon data
+linux_icon = assets_dir / "PiddiAPI.png"
+if linux_icon.exists():
+    datas.append((str(linux_icon), "piddi/static"))
 
 hiddenimports = [
     "uvicorn",
@@ -85,7 +91,17 @@ a = Analysis(
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 is_darwin = sys.platform == "darwin"
+is_windows = sys.platform.startswith("win")
+
 exe_name = "piddi_engine" if is_darwin else "PiddiAPI"
+
+# Platform-specific icon selection
+exe_icon = None
+mac_icon = assets_dir / "PiddiAPI.icns"
+win_icon = assets_dir / "PiddiAPI.ico"
+
+if is_windows and win_icon.exists():
+    exe_icon = str(win_icon)
 
 exe = EXE(
     pyz,
@@ -93,6 +109,7 @@ exe = EXE(
     [],
     exclude_binaries=True,
     name=exe_name,
+    icon=exe_icon,
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -120,12 +137,13 @@ if is_darwin:
     app = BUNDLE(
         coll,
         name="PiddiAPI.app",
-        icon=None,
+        icon=str(mac_icon) if mac_icon.exists() else None,
         bundle_identifier="com.piddiapi.engine",
         info_plist={
             "CFBundleName": "PiddiAPI",
             "CFBundleDisplayName": "PiddiAPI",
             "CFBundleExecutable": "PiddiAPI",
+            "CFBundleIconFile": "PiddiAPI.icns",
             "CFBundleIdentifier": "com.piddiapi.engine",
             "CFBundlePackageType": "APPL",
             "CFBundleVersion": "0.1.0",

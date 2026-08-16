@@ -6,6 +6,18 @@ import sys
 from pathlib import Path
 
 
+def test_master_icon_and_derivatives_exist():
+    """Verify master icon and platform-specific derivatives are present in assets/."""
+    repo_root = Path(__file__).resolve().parent.parent
+    assets_dir = repo_root / "assets"
+    assert (assets_dir / "PiddiAPIIcon.png").exists(), (
+        "Master artwork assets/PiddiAPIIcon.png missing"
+    )
+    assert (assets_dir / "PiddiAPI.icns").exists(), "macOS icon assets/PiddiAPI.icns missing"
+    assert (assets_dir / "PiddiAPI.ico").exists(), "Windows icon assets/PiddiAPI.ico missing"
+    assert (assets_dir / "PiddiAPI.png").exists(), "Linux icon assets/PiddiAPI.png missing"
+
+
 def test_build_manifest_structure_and_invariants():
     """Verify BUILD_MANIFEST.json is generated and satisfies all security and structure checks."""
     repo_root = Path(__file__).resolve().parent.parent
@@ -20,6 +32,7 @@ def test_build_manifest_structure_and_invariants():
     assert data["version"] == "0.1.0"
     assert "platform" in data
     assert "bundle_type" in data
+    assert data["checks"]["icon_present"] is True
     assert data["checks"]["static_index_present"] is True
     assert data["checks"]["static_js_present"] is True
     assert data["checks"]["zero_user_secrets"] is True
@@ -39,10 +52,12 @@ def test_piddi_spec_declares_onedir_and_static_datas():
     assert "hiddenimports" in content
     assert "uvicorn" in content
     assert "pydantic_core" in content
+    assert "PiddiAPI.icns" in content
+    assert "PiddiAPI.ico" in content
 
 
-def test_macos_app_has_terminal_launcher():
-    """Verify that macOS bundle has PiddiAPI terminal launcher script and piddi_engine."""
+def test_macos_app_has_terminal_launcher_and_icon():
+    """Verify that macOS bundle has PiddiAPI terminal launcher script, piddi_engine, and ICNS icon."""
     if sys.platform != "darwin":
         return
 
@@ -60,3 +75,9 @@ def test_macos_app_has_terminal_launcher():
     content = launcher.read_text(encoding="utf-8")
     assert "Terminal" in content
     assert "piddi_engine" in content
+
+    # Verify ICNS icon in Resources
+    resources_dir = app_dir / "Contents" / "Resources"
+    icns_file = resources_dir / "PiddiAPI.icns"
+    assert icns_file.exists()
+    assert icns_file.stat().st_size > 1000

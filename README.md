@@ -24,9 +24,8 @@ The user interface runs in your default web browser, communicating over an authe
 - 🧩 **Variable Interpolation & Dynamic Generators**: Supports `{{base_url}}`, nested variables, and built-in generators (`{{$timestamp}}`, `{{$guid}}`, `{{$randomInt}}`).
 - 📜 **Security-Hardened History**: Automatic execution logging with mandatory redaction of literal Authorization tokens, API keys, and sensitive cookies.
 - ⌨️ **Command Palette & Ergonomic Shortcuts**: Fast power-user navigation with `⌘K` / `Ctrl+K`, Piddi Application Shortcuts (`⌘⇧N`, `⌘⇧W`, `⌘↵`, `⌘⇧S`), and a 3-tier responsive layout operable down to 600px.
-- 🔄 **Two-Way cURL & Multi-Language Code Generation**: Instant cURL paste parsing and code export (Python `requests`/`httpx`, JavaScript `fetch`, cURL).
 - 🛡️ **Payload Guardrails**: Automatic stream-to-disk protection for responses exceeding 10MB to keep the UI responsive.
-- 🖥️ **Native Desktop Distribution**: Self-contained standalone application packages (e.g. macOS `PiddiAPI.app`) with automatic Terminal session integration and browser launch.
+- 🖥️ **Native Desktop Distribution**: Self-contained standalone application packages (e.g. macOS `PiddiAPI.app`, Windows `PiddiAPI.exe`, Linux) with native platform icons, automatic Terminal session integration, and browser launch.
 
 ---
 
