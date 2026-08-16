@@ -11,7 +11,7 @@
 
 ### **PASS**
 
-Phase 4 of PiddiAPI has been implemented and audited in strict compliance with [ARCHITECTURE_REVIEW.md](file:///Users/raunakmanna/Documents/Programming/Python/PiddiAPI/ARCHITECTURE_REVIEW.md), [TECHNICAL_SPEC.md](file:///Users/raunakmanna/Documents/Programming/Python/PiddiAPI/TECHNICAL_SPEC.md), and the Phase 4 Remediation Pass.
+Phase 4 of PiddiAPI has been implemented and audited in strict compliance with [ARCHITECTURE_REVIEW.md](../../architecture/ARCHITECTURE_REVIEW.md), [TECHNICAL_SPEC.md](../../architecture/TECHNICAL_SPEC.md), and the Phase 4 Remediation Pass.
 
 All security invariants, secret isolation boundaries, and concurrency protections are verified:
 1. Environment metadata and non-secret variables are stored in plain, human-readable JSON files (`.piddi/environments/env_<id>.json`).

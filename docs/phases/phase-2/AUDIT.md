@@ -11,7 +11,7 @@
 
 ### **PASS**
 
-Phase 2 of PiddiAPI has been implemented in strict compliance with [ARCHITECTURE_REVIEW.md](file:///Users/raunakmanna/Documents/Programming/Python/PiddiAPI/ARCHITECTURE_REVIEW.md), [TECHNICAL_SPEC.md](file:///Users/raunakmanna/Documents/Programming/Python/PiddiAPI/TECHNICAL_SPEC.md), and the approved Phase 2 Implementation Plan.
+Phase 2 of PiddiAPI has been implemented in strict compliance with [ARCHITECTURE_REVIEW.md](../../architecture/ARCHITECTURE_REVIEW.md), [TECHNICAL_SPEC.md](../../architecture/TECHNICAL_SPEC.md), and the approved Phase 2 Implementation Plan.
 
 The application shell, interactive request composer, tabbed multi-request manager, CodeMirror 6 editors, response panel, and loopback communication with the real FastAPI engine (`/api/execute`) are fully functional end-to-end. All 27 frontend Vitest tests and all 56 backend Pytest tests pass with a 100% pass rate. Formatter and linter checks pass with zero warnings.
 

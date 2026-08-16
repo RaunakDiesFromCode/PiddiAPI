@@ -11,7 +11,7 @@
 
 ### **PASS**
 
-The Phase 1 backend engine for PiddiAPI is fully compliant with the approved [ARCHITECTURE_REVIEW.md](file:///Users/raunakmanna/Documents/Programming/Python/PiddiAPI/ARCHITECTURE_REVIEW.md) and [TECHNICAL_SPEC.md](file:///Users/raunakmanna/Documents/Programming/Python/PiddiAPI/TECHNICAL_SPEC.md). All 51 unit, integration, security, boundary, and adversarial tests pass with a 100% pass rate. Linter (`ruff check`) and formatter (`ruff format`) pass with zero warnings.
+The Phase 1 backend engine for PiddiAPI is fully compliant with the approved [ARCHITECTURE_REVIEW.md](../../architecture/ARCHITECTURE_REVIEW.md) and [TECHNICAL_SPEC.md](../../architecture/TECHNICAL_SPEC.md). All 51 unit, integration, security, boundary, and adversarial tests pass with a 100% pass rate. Linter (`ruff check`) and formatter (`ruff format`) pass with zero warnings.
 
 ---
 

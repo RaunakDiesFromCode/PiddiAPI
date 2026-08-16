@@ -11,7 +11,7 @@
 
 ### **PASS**
 
-Phase 3 of PiddiAPI has been implemented in strict compliance with [ARCHITECTURE_REVIEW.md](file:///Users/raunakmanna/Documents/Programming/Python/PiddiAPI/ARCHITECTURE_REVIEW.md), [TECHNICAL_SPEC.md](file:///Users/raunakmanna/Documents/Programming/Python/PiddiAPI/TECHNICAL_SPEC.md), and the approved Phase 3 Implementation Plan.
+Phase 3 of PiddiAPI has been implemented in strict compliance with [ARCHITECTURE_REVIEW.md](../../architecture/ARCHITECTURE_REVIEW.md), [TECHNICAL_SPEC.md](../../architecture/TECHNICAL_SPEC.md), and the approved Phase 3 Implementation Plan.
 
 The `.piddi/collections/` filesystem is established as the single source of truth. All collections and requests are persisted in plain, human-readable JSON files with opaque, stable IDs (`col_<id>.json`, `req_<id>`), atomic replacement semantics, and deterministic Git-friendly serialization. Known credentials in auth configurations and authorization headers are sanitized on disk while template references (`{{var}}`) and arbitrary request bodies are preserved verbatim. All 71 backend Pytest tests and all 38 frontend Vitest tests pass with a 100% pass rate. Linter (`ruff check`) and formatter (`ruff format`) pass with zero warnings.
 

@@ -82,12 +82,12 @@ def create_app() -> FastAPI:
     app.include_router(execute_router)
 
     # Static file serving & deterministic runtime token injection
-    from pathlib import Path
-
     from fastapi.responses import HTMLResponse
     from fastapi.staticfiles import StaticFiles
 
-    static_dir = Path(__file__).parent / "static"
+    from piddi.paths import get_static_dir
+
+    static_dir = get_static_dir()
     if (static_dir / "assets").exists():
         app.mount("/assets", StaticFiles(directory=static_dir / "assets"), name="assets")
 

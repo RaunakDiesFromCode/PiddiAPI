@@ -11,12 +11,12 @@
 ## 1. Executive Summary
 
 A complete roadmap reconciliation and forensic audit of the PiddiAPI codebase was performed against:
-- [TECHNICAL_SPEC.md](file:///Users/raunakmanna/Documents/Programming/Python/PiddiAPI/TECHNICAL_SPEC.md) (Final Implementation Contract)
-- [ARCHITECTURE_REVIEW.md](file:///Users/raunakmanna/Documents/Programming/Python/PiddiAPI/ARCHITECTURE_REVIEW.md) (Architectural Baseline)
-- [PHASE_1_AUDIT.md](file:///Users/raunakmanna/Documents/Programming/Python/PiddiAPI/PHASE_1_AUDIT.md) (Engine Core & Dispatcher — Certified PASS)
-- [PHASE_2_AUDIT.md](file:///Users/raunakmanna/Documents/Programming/Python/PiddiAPI/PHASE_2_AUDIT.md) (Frontend Shell & Request Composer — Certified PASS)
-- [PHASE_3_AUDIT.md](file:///Users/raunakmanna/Documents/Programming/Python/PiddiAPI/PHASE_3_AUDIT.md) (Workspace & Collections Persistence — Certified PASS)
-- [PHASE_4_AUDIT.md](file:///Users/raunakmanna/Documents/Programming/Python/PiddiAPI/PHASE_4_AUDIT.md) (Environments & Secrets Vault — Certified PASS)
+- [TECHNICAL_SPEC.md](../../architecture/TECHNICAL_SPEC.md) (Final Implementation Contract)
+- [ARCHITECTURE_REVIEW.md](../../architecture/ARCHITECTURE_REVIEW.md) (Architectural Baseline)
+- [PHASE_1_AUDIT.md](../phase-1/AUDIT.md) (Engine Core & Dispatcher — Certified PASS)
+- [PHASE_2_AUDIT.md](../phase-2/AUDIT.md) (Frontend Shell & Request Composer — Certified PASS)
+- [PHASE_3_AUDIT.md](../phase-3/AUDIT.md) (Workspace & Collections Persistence — Certified PASS)
+- [PHASE_4_AUDIT.md](../phase-4/AUDIT.md) (Environments & Secrets Vault — Certified PASS)
 - Current complete backend (`piddi/`), frontend (`frontend/src/`), and test suites (`tests/`).
 
 ### Key Verdict
@@ -34,7 +34,7 @@ Specifically, **Phase 5 cannot be treated merely as a "packaging and cleanup" st
 
 ## 2. Complete Specification-to-Implementation Matrix
 
-Every single functional and non-functional requirement from [TECHNICAL_SPEC.md](file:///Users/raunakmanna/Documents/Programming/Python/PiddiAPI/TECHNICAL_SPEC.md) and [ARCHITECTURE_REVIEW.md](file:///Users/raunakmanna/Documents/Programming/Python/PiddiAPI/ARCHITECTURE_REVIEW.md) was inspected against the codebase.
+Every single functional and non-functional requirement from [TECHNICAL_SPEC.md](../../architecture/TECHNICAL_SPEC.md) and [ARCHITECTURE_REVIEW.md](../../architecture/ARCHITECTURE_REVIEW.md) was inspected against the codebase.
 
 | Feature / Requirement | Specification Section | Intended Phase | Current Implementation Status | Code Evidence | Remaining Work |
 |---|---|---|---|---|---|
@@ -187,7 +187,7 @@ Phase 5 represents the final delivery phase that completes the entire PiddiAPI s
 
 ## 6. History Requirements Extracted from the Specification
 
-The specification requirements for Request History have been extracted from [TECHNICAL_SPEC.md](file:///Users/raunakmanna/Documents/Programming/Python/PiddiAPI/TECHNICAL_SPEC.md) (§3.1, §3.3, §5.6, §9, §11.1, §11.2, §14, §16.1, §17) and [ARCHITECTURE_REVIEW.md](file:///Users/raunakmanna/Documents/Programming/Python/PiddiAPI/ARCHITECTURE_REVIEW.md) (§2.1, §3, §4, §5, §11):
+The specification requirements for Request History have been extracted from [TECHNICAL_SPEC.md](../../architecture/TECHNICAL_SPEC.md) (§3.1, §3.3, §5.6, §9, §11.1, §11.2, §14, §16.1, §17) and [ARCHITECTURE_REVIEW.md](../../architecture/ARCHITECTURE_REVIEW.md) (§2.1, §3, §4, §5, §11):
 
 | Aspect | Specification Requirement | Rationale / Architectural Contract |
 |---|---|---|

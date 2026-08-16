@@ -11,7 +11,7 @@
 
 ### **PASS — 100% PRODUCTION READY**
 
-Phase 5 of PiddiAPI has been completely implemented, verified, and audited in strict compliance with [ARCHITECTURE_REVIEW.md](file:///Users/raunakmanna/Documents/Programming/Python/PiddiAPI/ARCHITECTURE_REVIEW.md), [TECHNICAL_SPEC.md](file:///Users/raunakmanna/Documents/Programming/Python/PiddiAPI/TECHNICAL_SPEC.md), and the certified Phase 1–5 implementation plans.
+Phase 5 of PiddiAPI has been completely implemented, verified, and audited in strict compliance with [ARCHITECTURE_REVIEW.md](../../architecture/ARCHITECTURE_REVIEW.md), [TECHNICAL_SPEC.md](../../architecture/TECHNICAL_SPEC.md), and the certified Phase 1–5 implementation plans.
 
 All security invariants, performance guardrails, privacy guarantees, and architectural standards are certified:
 1. **Request History Subsystem**:

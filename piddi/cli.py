@@ -6,15 +6,14 @@ import logging.handlers
 import secrets
 import socket
 import sys
-import threading
-import time
-import webbrowser
 from pathlib import Path
 
 import uvicorn
 
 from piddi.config import AppConfig, set_config
+from piddi.launcher import poll_health_and_launch_browser
 from piddi.main import create_app
+from piddi.paths import get_user_piddi_home, resolve_desktop_workspace
 from piddi.storage.environment_manager import EnvironmentFileManager
 from piddi.storage.file_manager import WorkspaceFileManager
 from piddi.storage.history import get_history_manager
@@ -42,13 +41,25 @@ def find_available_port(
     )
 
 
-def setup_cli_logging(log_dir: Path, debug: bool = False) -> None:
-    """Configure rotating file logging to ~/.piddi/piddi.log and console output."""
+def setup_cli_logging(
+    log_dir: Path,
+    debug: bool = False,
+    console: bool = False,
+) -> None:
+    """
+    Configure rotating file logging to ~/.piddi/piddi.log and optional console stream output.
+
+    --console: Attaches stream output to stdout/stderr.
+    --dev: Sets log level to DEBUG.
+    """
     log_dir.mkdir(parents=True, exist_ok=True)
     log_file = log_dir / "piddi.log"
 
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG if debug else logging.INFO)
+
+    # Clear existing handlers to prevent duplicate lines on re-init
+    root_logger.handlers.clear()
 
     # Rotating file handler (5MB, 3 backups)
     file_handler = logging.handlers.RotatingFileHandler(
@@ -65,23 +76,20 @@ def setup_cli_logging(log_dir: Path, debug: bool = False) -> None:
     file_handler.setFormatter(file_fmt)
     root_logger.addHandler(file_handler)
 
-
-def launch_browser_delayed(url: str, delay_sec: float = 0.4) -> None:
-    """Launch the default system web browser in a background thread after engine startup."""
-
-    def _target() -> None:
-        time.sleep(delay_sec)
-        try:
-            webbrowser.open(url)
-        except Exception as e:  # noqa: BLE001
-            logging.getLogger("piddi.cli").warning("Failed to auto-launch browser: %s", e)
-
-    thread = threading.Thread(target=_target, daemon=True)
-    thread.start()
+    # Console stream handler for interactive terminal or explicit --console/--dev
+    if console or debug or (hasattr(sys.stdout, "isatty") and sys.stdout.isatty()):
+        stream_handler = logging.StreamHandler(sys.stdout)
+        stream_handler.setLevel(logging.DEBUG if debug else logging.INFO)
+        stream_fmt = logging.Formatter(
+            "%(asctime)s [%(levelname)s] %(message)s",
+            datefmt="%H:%M:%S",
+        )
+        stream_handler.setFormatter(stream_fmt)
+        root_logger.addHandler(stream_handler)
 
 
 def main(args_list: list[str] | None = None) -> int:
-    """Main CLI entrypoint for PiddiAPI."""
+    """Main CLI entrypoint and standalone launcher for PiddiAPI."""
     parser = argparse.ArgumentParser(
         prog="piddi",
         description="Fast, local-first API testing engine with secure loopback execution.",
@@ -105,6 +113,11 @@ def main(args_list: list[str] | None = None) -> int:
         help="Start engine without automatically opening the default web browser",
     )
     parser.add_argument(
+        "--console",
+        action="store_true",
+        help="Show backend engine log output in stdout/stderr",
+    )
+    parser.add_argument(
         "--dev",
         action="store_true",
         help="Run in development mode with debug routes and open API documentation",
@@ -119,12 +132,12 @@ def main(args_list: list[str] | None = None) -> int:
 
     args = parser.parse_args(args_list)
 
-    # 1. Resolve workspace path
-    workspace_path = Path(args.workspace).resolve()
+    # 1. Resolve workspace path with desktop launch fallbacks
+    workspace_path = resolve_desktop_workspace(args.workspace)
 
     # 2. Setup logging directory
-    piddi_home = Path.home() / ".piddi"
-    setup_cli_logging(piddi_home, debug=args.dev)
+    piddi_home = get_user_piddi_home()
+    setup_cli_logging(piddi_home, debug=args.dev, console=args.console)
     logger = logging.getLogger("piddi.cli")
 
     # 3. Find available port (4111 -> 4120)
@@ -164,11 +177,17 @@ def main(args_list: list[str] | None = None) -> int:
     print(f"  Workspace:  {workspace_path}")
     print(f"  Logs:       {piddi_home / 'piddi.log'}")
     print("=" * 60)
-    print("Press Ctrl+C to stop the server.")
+    print("Press Ctrl+C in this terminal to stop the server.")
 
-    # 8. Trigger browser auto-launch if requested
+    # 8. Trigger browser auto-launch only after authoritative /api/health readiness
     if not args.no_browser:
-        launch_browser_delayed(app_url)
+        poll_health_and_launch_browser(
+            host="127.0.0.1",
+            port=port,
+            session_token=session_token,
+            max_timeout=5.0,
+            poll_interval=0.05,
+        )
 
     # 9. Create FastAPI application and start Uvicorn server
     app = create_app()

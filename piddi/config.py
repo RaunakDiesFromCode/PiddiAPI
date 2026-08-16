@@ -2,9 +2,12 @@
 
 import os
 import secrets
+import sys
 from pathlib import Path
 
 from pydantic import BaseModel, Field
+
+from piddi.paths import get_bundle_dir, get_user_piddi_home
 
 try:
     from dotenv import find_dotenv, load_dotenv
@@ -13,7 +16,7 @@ try:
     if env_file:
         load_dotenv(env_file)
     else:
-        repo_env = Path(__file__).resolve().parent.parent / ".env"
+        repo_env = get_bundle_dir() / ".env"
         if repo_env.exists():
             load_dotenv(repo_env)
 except ImportError:
@@ -30,8 +33,11 @@ def _is_dev_mode() -> bool:
         return True
     if dev_val in ("0", "false", "no", "prod", "production"):
         return False
+    # If running in a frozen bundle, default to production mode
+    if getattr(sys, "frozen", False):
+        return False
     # If running from source checkout with frontend/src present, default to dev mode
-    repo_frontend_src = Path(__file__).resolve().parent.parent / "frontend" / "src"
+    repo_frontend_src = get_bundle_dir() / "frontend" / "src"
     return repo_frontend_src.is_dir()
 
 
@@ -42,7 +48,7 @@ class AppConfig(BaseModel):
     port: int = 4111
     session_token: str = Field(default_factory=_default_session_token)
     workspace_path: Path = Field(default_factory=lambda: Path(os.getcwd()).resolve())
-    temp_dir: Path = Field(default_factory=lambda: Path.home() / ".piddi" / "temp")
+    temp_dir: Path = Field(default_factory=lambda: get_user_piddi_home() / "temp")
     max_payload_size_bytes: int = 50 * 1024 * 1024  # 50 MB
     debug: bool = Field(default_factory=_is_dev_mode)
 
