@@ -81,3 +81,22 @@ def test_macos_app_has_terminal_launcher_and_icon():
     icns_file = resources_dir / "PiddiAPI.icns"
     assert icns_file.exists()
     assert icns_file.stat().st_size > 1000
+
+
+def test_windows_app_has_executable_and_internal():
+    """Verify that Windows bundle has PiddiAPI.exe and _internal runtime directory."""
+    if not sys.platform.startswith("win"):
+        return
+
+    repo_root = Path(__file__).resolve().parent.parent
+    app_dir = repo_root / "dist" / "PiddiAPI"
+    if not app_dir.exists():
+        return
+
+    exe_file = app_dir / "PiddiAPI.exe"
+    internal_dir = app_dir / "_internal"
+    static_html = internal_dir / "piddi" / "static" / "index.html"
+    assert exe_file.exists()
+    assert exe_file.stat().st_size > 1_000_000
+    assert internal_dir.exists()
+    assert static_html.exists()

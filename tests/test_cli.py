@@ -8,15 +8,24 @@ import pytest
 from piddi.cli import find_available_port, main, setup_cli_logging
 
 
+def _create_bound_socket(port: int) -> socket.socket:
+    """Create and bind a TCP socket with platform-appropriate address exclusivity."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+    else:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind(("127.0.0.1", port))
+    return s
+
+
 def get_free_base_port(span: int = 5) -> int:
     """Find a base port where span consecutive ports are available."""
     for base in range(25000, 35000, 10):
         sockets = []
         try:
             for offset in range(span):
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                s.bind(("127.0.0.1", base + offset))
+                s = _create_bound_socket(base + offset)
                 sockets.append(s)
             return base
         except OSError:
@@ -30,31 +39,28 @@ def get_free_base_port(span: int = 5) -> int:
 def test_cli_port_scanning_fallback():
     """Verify port scanner detects occupied port and falls back to the next available port."""
     base = get_free_base_port()
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s1:
-        s1.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        s1.bind(("127.0.0.1", base))
+    s1 = _create_bound_socket(base)
+    try:
         s1.listen(1)
-
         available_port = find_available_port(start_port=base, max_attempts=5)
         assert available_port == base + 1
+    finally:
+        s1.close()
 
 
 def test_cli_port_scanning_multiple_occupied():
     """Verify port scanner iterates through multiple occupied ports."""
     base = get_free_base_port()
-    with (
-        socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s1,
-        socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s2,
-    ):
-        s1.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        s2.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        s1.bind(("127.0.0.1", base))
-        s2.bind(("127.0.0.1", base + 1))
+    s1 = _create_bound_socket(base)
+    s2 = _create_bound_socket(base + 1)
+    try:
         s1.listen(1)
         s2.listen(1)
-
         available_port = find_available_port(start_port=base, max_attempts=5)
         assert available_port == base + 2
+    finally:
+        s1.close()
+        s2.close()
 
 
 def test_cli_all_ports_occupied_raises():
@@ -63,9 +69,7 @@ def test_cli_all_ports_occupied_raises():
     sockets = []
     try:
         for p in range(base, base + 3):
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.bind(("127.0.0.1", p))
+            s = _create_bound_socket(p)
             s.listen(1)
             sockets.append(s)
 

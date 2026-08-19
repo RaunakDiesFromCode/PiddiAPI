@@ -71,15 +71,40 @@ For complete technical specifications, see [docs/architecture/README.md](docs/ar
 
 ## 🚀 Quick Start
 
-### Option 1: Using the Pre-Packaged Application (macOS)
-1. Download `PiddiAPI.app` from releases or build it locally.
+### Option 1: Using the Pre-Packaged Application
+
+#### On Windows:
+1. Download `PiddiAPI-windows-x64.zip` from releases or build it locally (`dist/PiddiAPI/`).
+2. Double-click `PiddiAPI.exe` inside the `PiddiAPI` directory.
+3. Windows Command Console opens automatically with the startup banner, starts the engine, and launches your default web browser to the workspace.
+4. When finished, switch to the console window and press `Ctrl+C` for graceful shutdown.
+
+#### On macOS:
+1. Download `PiddiAPI.app` from releases or build it locally (`dist/PiddiAPI.app`).
 2. Double-click `PiddiAPI.app` in Finder.
 3. Apple Terminal opens automatically, starts the engine, and launches your browser to the workspace.
 4. When finished, switch to the Terminal window and press `Ctrl+C` for graceful shutdown.
 
+---
+
 ### Option 2: Running from Source (Python CLI)
 
 #### 1. Clone & Install Dependencies
+
+**On Windows (PowerShell):**
+```powershell
+git clone https://github.com/your-username/PiddiAPI.git
+cd PiddiAPI
+
+# Create and activate Python virtual environment
+python -m venv .venv
+.venv\Scripts\activate
+
+# Install Piddi in editable mode with development tools
+pip install -e ".[dev]"
+```
+
+**On macOS / Linux (Bash):**
 ```bash
 git clone https://github.com/your-username/PiddiAPI.git
 cd PiddiAPI
@@ -146,11 +171,11 @@ PiddiAPI/
 ├── frontend/                 # React 18 + TypeScript + Tailwind CSS UI
 │   ├── src/components/       # UI components (RequestBuilder, ResponseViewer, Modals)
 │   └── src/store/            # Zustand state stores
-├── tests/                    # 128 automated Python backend tests
+├── tests/                    # Automated Python backend tests (129 tests)
 ├── scripts/                  # Automated native packaging build scripts
 ├── docs/                     # Comprehensive architecture and developer documentation
 ├── pyproject.toml            # Package configuration and dependencies
-├── piddi.spec                # PyInstaller ONEDIR specification
+├── piddi.spec                # PyInstaller ONEDIR specification (Windows & macOS)
 ├── README.md                 # Root project overview
 └── LICENSE                   # MIT License
 ```
@@ -174,8 +199,25 @@ my-project/
 
 PiddiAPI is covered by an automated test suite across both Python and React codebases:
 
+**On Windows (PowerShell):**
+```powershell
+# Run all 129 Python backend tests
+.venv\Scripts\pytest -v
+
+# Run all 84 Frontend component and store tests
+cd frontend; npm test -- --run; cd ..
+
+# Run Python linter and formatter checks
+.venv\Scripts\ruff check .
+.venv\Scripts\ruff format --check .
+
+# Run TypeScript type validation
+cd frontend; npx tsc --noEmit; cd ..
+```
+
+**On macOS / Linux (Bash):**
 ```bash
-# Run all 128 Python backend tests
+# Run all 129 Python backend tests
 .venv/bin/pytest -v
 
 # Run all 84 Frontend component and store tests
@@ -193,16 +235,23 @@ cd frontend && npx tsc --noEmit && cd ..
 
 ## 📦 Building & Native Packaging
 
-To create a standalone native application bundle:
+To create a standalone native application package on either platform:
 
+### On Windows (PowerShell):
+```powershell
+# 1. Build frontend and execute PyInstaller ONEDIR packager
+.venv\Scripts\python scripts/build_package.py
+```
+- **Output**: `dist/PiddiAPI/` containing `PiddiAPI.exe` (Self-contained application folder with embedded `PiddiAPI.ico`, console window launcher, and zero startup decompression).
+- **Manifest**: `dist/BUILD_MANIFEST.json` (Cryptographic SHA-256 digests and security assertions).
+
+### On macOS (Bash):
 ```bash
-# Build frontend and execute PyInstaller ONEDIR packager
+# 1. Build frontend and execute PyInstaller ONEDIR packager
 .venv/bin/python scripts/build_package.py
 ```
-
-Produces:
-- **macOS**: `dist/PiddiAPI.app` (Self-contained, double-clickable app bundle with integrated Terminal launcher).
-- **Manifest**: `dist/BUILD_MANIFEST.json` (Verifiable SHA-256 build digests and invariant assertions).
+- **Output**: `dist/PiddiAPI.app` (Self-contained, double-clickable application bundle with integrated Terminal launcher and `PiddiAPI.icns`).
+- **Manifest**: `dist/BUILD_MANIFEST.json` (Cryptographic SHA-256 digests and security assertions).
 
 For full details, see [docs/development/BUILDING.md](docs/development/BUILDING.md) and [docs/development/PACKAGING.md](docs/development/PACKAGING.md).
 

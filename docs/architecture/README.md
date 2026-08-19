@@ -166,33 +166,25 @@ Every JSON entity includes `"schema_version": 1` at the root, enabling determini
 
 ## 6. Native Desktop Distribution Architecture
 
-For native macOS distribution (`PiddiAPI.app`), PiddiAPI uses a **hybrid architecture** that combines a standalone Python runtime with standard system Terminal and web browser tooling:
+For native Windows (`PiddiAPI.exe`) and macOS (`PiddiAPI.app`) distributions, PiddiAPI uses a **hybrid architecture** that combines a standalone frozen Python runtime with standard operating system console and web browser tooling:
 
 ```text
 +-----------------------------------------------------------------------------+
-|                               Finder / LaunchServices                       |
+|               Windows Explorer (PiddiAPI.exe) / macOS Finder (PiddiAPI.app) |
 +--------------------------------------|--------------------------------------+
-                                       | Double-click PiddiAPI.app
+                                       | Double-click application executable
 +--------------------------------------v--------------------------------------+
-|  PiddiAPI.app/Contents/MacOS/PiddiAPI (Bash Launcher Script)                |
-|  1. Detects GUI launch without interactive TTY                              |
-|  2. Allocates isolated session temp directory                               |
-|  3. Spawns Terminal.app via AppleScript running piddi_engine                |
-|  4. Monitors child process lifecycle and handles signals                    |
-+--------------------------------------|--------------------------------------+
-                                       | Launches Engine in Terminal
-+--------------------------------------v--------------------------------------+
-|  Terminal.app Window                                                        |
-|  1. PyInstaller ONEDIR bundled Python runtime loads                         |
-|  2. FastAPI engine binds to 127.0.0.1:4111                                  |
-|  3. Health poller verifies /api/health                                      |
-|  4. Opens default system web browser to UI                                  |
-|  5. Displays live server request logs                                       |
-|  6. User presses Ctrl+C -> Graceful engine shutdown -> Port released        |
+|  Launcher Subsystem (Windows Console / macOS AppleScript Terminal Wrapper)  |
+|  1. Allocates interactive visible console / Terminal window                 |
+|  2. Resolves frozen bundle paths and initializes user data dirs             |
+|  3. Spawns PyInstaller ONEDIR engine runtime and binds to 127.0.0.1:4111    |
+|  4. Health poller verifies /api/health with session token                   |
+|  5. Automatically launches system default web browser to React workspace    |
+|  6. Monitors process signals (Ctrl+C) for graceful ASGI shutdown            |
 +-----------------------------------------------------------------------------+
 ```
 
 This model provides:
-- **Zero Heavy Webview Dependencies**: Avoids bundling massive Chromium/Electron runtimes (~250MB).
-- **Full Operational Visibility**: Developers can observe live request logs, timing traces, and errors directly in Terminal.
-- **Graceful Lifecycle Control**: Standard POSIX `SIGINT` (`Ctrl+C`) cleanly drains in-flight requests, flushes history logs, and frees network ports.
+- **Zero Heavy Webview Dependencies**: Avoids bundling massive Chromium/Electron runtimes (~250MB+).
+- **Full Operational Visibility**: Developers can observe live request logs, timing traces, and errors directly in their native console / Terminal.
+- **Graceful Lifecycle Control**: Standard `SIGINT` (`Ctrl+C`) cleanly drains in-flight requests, flushes history logs, and frees network ports.

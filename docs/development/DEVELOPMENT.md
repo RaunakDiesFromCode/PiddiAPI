@@ -14,7 +14,8 @@ Ensure the following tools are installed on your workstation:
 | **Node.js** | `>= 18.0.0` | `20.x LTS` | Required for building and developing the React frontend. |
 | **npm** | `>= 9.0.0` | `10.x` | Node package manager (comes bundled with Node.js). |
 | **Git** | `>= 2.30.0` | Latest | Version control system. |
-| **macOS** *(optional)* | macOS 12+ | macOS 14+ Sonoma | Required for building and verifying the native `PiddiAPI.app` bundle. |
+| **Windows** | Windows 10/11 x64 | Windows 11 (23H2+) | Supported OS for running, developing, and building `PiddiAPI.exe`. |
+| **macOS** | macOS 12+ | macOS 14+ Sonoma | Supported OS for running, developing, and building `PiddiAPI.app`. |
 
 ---
 
@@ -22,6 +23,26 @@ Ensure the following tools are installed on your workstation:
 
 Clone the repository and set up both backend and frontend environments:
 
+### On Windows (PowerShell):
+```powershell
+# 1. Clone the project
+git clone https://github.com/your-username/PiddiAPI.git
+cd PiddiAPI
+
+# 2. Set up Python virtual environment
+python -m venv .venv
+.venv\Scripts\activate
+
+# 3. Install Python dependencies in editable mode with development tools
+pip install -e ".[dev]" pillow
+
+# 4. Install Frontend dependencies
+cd frontend
+npm install
+cd ..
+```
+
+### On macOS / Linux (Bash):
 ```bash
 # 1. Clone the project
 git clone https://github.com/your-username/PiddiAPI.git
@@ -32,7 +53,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 
 # 3. Install Python dependencies in editable mode with development tools
-pip install -e ".[dev]"
+pip install -e ".[dev]" pillow
 
 # 4. Install Frontend dependencies
 cd frontend
@@ -51,10 +72,8 @@ There are two primary ways to run PiddiAPI during development:
 This is the standard mode when actively making changes to both the React UI and the Python engine.
 
 1. **Start the Backend Engine** in terminal 1:
-   ```bash
-   source .venv/bin/activate
-   piddi . --dev --no-browser --port 4111
-   ```
+   - On Windows: `.venv\Scripts\activate; piddi . --dev --no-browser --port 4111`
+   - On macOS/Linux: `source .venv/bin/activate && piddi . --dev --no-browser --port 4111`
 
 2. **Start the Frontend Vite Dev Server** in terminal 2:
    ```bash

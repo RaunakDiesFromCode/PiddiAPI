@@ -51,7 +51,33 @@ python scripts/generate_icons.py
 
 ---
 
-## 3. macOS Application Bundle Layout
+## 3. Application Package Layouts
+
+### 3.1. Windows Application Package (`dist/PiddiAPI/`)
+
+On Windows, the build generates a self-contained application directory at `dist/PiddiAPI/`:
+
+```text
+dist/PiddiAPI/
+├── PiddiAPI.exe                      # Native compiled Windows entrypoint (PE binary with embedded ICO)
+└── _internal/                        # Bundled Python runtime, C-extensions, stdlib .pyz
+    ├── base_library.zip
+    ├── libcrypto-3.dll
+    ├── libssl-3.dll
+    ├── pydantic_core/
+    ├── httpx/
+    ├── uvicorn/
+    └── piddi/
+        └── static/                   # Bundled React SPA assets
+            ├── index.html
+            └── assets/
+                ├── index-*.js
+                └── index-*.css
+```
+
+---
+
+### 3.2. macOS Application Bundle (`dist/PiddiAPI.app`)
 
 On macOS, the build generates a standard Apple Application Bundle at `dist/PiddiAPI.app`:
 
@@ -72,7 +98,7 @@ dist/piddi_engine/
 ├── piddi_engine                      # Native compiled bootstrap binary
 ├── _internal/                        # Bundled Python runtime, C-extensions, stdlib .pyz
 │   ├── base_library.zip
-│   ├── libpython3.14.dylib
+│   ├── libpython3.12.dylib
 │   ├── pydantic_core/
 │   ├── httpx/
 │   ├── uvicorn/
@@ -86,7 +112,22 @@ dist/piddi_engine/
 
 ---
 
-## 4. macOS Launcher Script & Terminal Integration
+## 4. Platform Launchers & Terminal / Console Integration
+
+### 4.1. Windows Launcher & Console Integration (`PiddiAPI.exe`)
+
+On Windows, `piddi.spec` compiles `PiddiAPI.exe` with `console=True` and `icon="assets/PiddiAPI.ico"`:
+
+1. **PE Binary Icon Embedding**: `PiddiAPI.ico` containing 16×16 through 256×256 icon sizes is embedded directly into the PE header resource table of `PiddiAPI.exe`. Windows Explorer and the Windows Taskbar render this icon natively.
+2. **Interactive Console Window**: When double-clicked in Windows Explorer, Windows automatically allocates a Command Prompt console window:
+   - Prints the formatted startup banner: version, loopback URL (`http://127.0.0.1:4111/`), active workspace directory, and log path.
+   - Live server requests, HTTP status codes, execution phase timings, and debug errors stream to the console.
+3. **Deterministic Readiness Polling**: The background launcher thread polls `http://127.0.0.1:4111/api/health` with `X-Piddi-Token`. As soon as HTTP 200 OK is received, `webbrowser.open()` launches the default Windows browser.
+4. **Clean Windows Shutdown**: Pressing `Ctrl+C` in the console window triggers a graceful `KeyboardInterrupt` / `SIGINT`, flushing pending execution history records and freeing loopback sockets immediately.
+
+---
+
+### 4.2. macOS Launcher Script & Apple Terminal Integration
 
 To satisfy the requirement that double-clicking `PiddiAPI.app` in Finder opens an interactive Terminal session:
 
@@ -142,7 +183,7 @@ To satisfy the requirement that double-clicking `PiddiAPI.app` in Finder opens a
    exit 0
    ```
 
-### 4.1. `Info.plist` Invariants
+#### 4.3. `Info.plist` Invariants
 The bundle's `Info.plist` is explicitly validated to ensure:
 - `CFBundleIconFile = "PiddiAPI.icns"`
 - `LSBackgroundOnly = False` (Application is not a hidden background daemon)
@@ -180,7 +221,7 @@ def get_static_dir() -> Path:
 
 
 def get_user_piddi_home() -> Path:
-    """Returns global user data directory (~/.piddi)."""
+    """Returns global user data directory (~/.piddi or %USERPROFILE%\.piddi)."""
     p = Path.home() / ".piddi"
     p.mkdir(parents=True, exist_ok=True)
     return p
@@ -196,11 +237,11 @@ Every packaging run produces `dist/BUILD_MANIFEST.json`, which computes SHA-256 
 {
   "app_name": "PiddiAPI",
   "version": "0.1.0",
-  "build_timestamp": "2026-08-16T11:13:30Z",
-  "python_version": "3.14.0",
-  "platform": "darwin-arm64",
-  "bundle_type": "macOS .app Bundle",
-  "bundle_path": "dist/PiddiAPI.app",
+  "build_timestamp": "2026-08-19T10:29:56Z",
+  "python_version": "3.12.6",
+  "platform": "windows-amd64",
+  "bundle_type": "Application Directory",
+  "bundle_path": "dist/PiddiAPI",
   "checks": {
     "icon_present": true,
     "static_index_present": true,
@@ -208,7 +249,7 @@ Every packaging run produces `dist/BUILD_MANIFEST.json`, which computes SHA-256 
     "zero_user_secrets": true,
     "zero_dot_piddi_in_bundle": true
   },
-  "total_bundle_files": 313
+  "total_bundle_files": 63
 }
 ```
 
@@ -218,6 +259,6 @@ Every packaging run produces `dist/BUILD_MANIFEST.json`, which computes SHA-256 
 
 | Platform | Target Package | Icon | Status | Verification Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| **macOS (Apple Silicon & Intel)** | `PiddiAPI.app` (ONEDIR) | `PiddiAPI.icns` | **BUILT & RUNTIME VERIFIED** | Tested on macOS. Icon verified in Finder/Dock, Terminal launcher, readiness polling, browser opening, and graceful shutdown verified. |
-| **Windows** | `PiddiAPI.exe` (ONEDIR) | `PiddiAPI.ico` | **CONFIGURED (Spec Ready)** | `piddi.spec` configured with `PiddiAPI.ico` and `console=True`. |
-| **Linux** | `PiddiAPI` executable (ONEDIR) | `PiddiAPI.png` | **CONFIGURED (Spec Ready)** | `piddi.spec` configured with `PiddiAPI.png` data embedding and `console=True`. |
+| **Windows (x64)** | `dist/PiddiAPI/` with `PiddiAPI.exe` (ONEDIR) | `PiddiAPI.ico` | **BUILT & RUNTIME VERIFIED** | Tested on Windows 10/11 x64. PE icon embedded, console launcher verified, readiness polling verified, browser auto-launch verified, and graceful shutdown verified. |
+| **macOS (Apple Silicon & Intel)** | `dist/PiddiAPI.app` (ONEDIR) | `PiddiAPI.icns` | **BUILT & RUNTIME VERIFIED** | Tested on macOS. Icon verified in Finder/Dock, Terminal launcher, readiness polling, browser opening, and graceful shutdown verified. |
+| **Linux (x64)** | `dist/PiddiAPI/` executable (ONEDIR) | `PiddiAPI.png` | **CONFIGURED (Spec Ready)** | `piddi.spec` configured with `PiddiAPI.png` data embedding and `console=True`. |
