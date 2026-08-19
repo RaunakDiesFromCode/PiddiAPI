@@ -74,10 +74,11 @@ For complete technical specifications, see [docs/architecture/README.md](docs/ar
 ### Option 1: Using the Pre-Packaged Application
 
 #### On Windows:
-1. Download `PiddiAPI-windows-x64.zip` from releases or build it locally (`dist/PiddiAPI/`).
-2. Double-click `PiddiAPI.exe` inside the `PiddiAPI` directory.
-3. Windows Command Console opens automatically with the startup banner, starts the engine, and launches your default web browser to the workspace.
-4. When finished, switch to the console window and press `Ctrl+C` for graceful shutdown.
+1. Download **`PiddiAPI-Setup.exe`** from GitHub Releases.
+2. Run the installer and follow the setup wizard to install PiddiAPI.
+3. Launch PiddiAPI from the Desktop shortcut or Start Menu.
+4. Windows Command Console opens automatically with the startup banner, starts the engine, and launches your default web browser to the workspace.
+5. When finished, switch to the console window and press `Ctrl+C` for graceful shutdown.
 
 #### On macOS:
 1. Download `PiddiAPI.app` from releases or build it locally (`dist/PiddiAPI.app`).

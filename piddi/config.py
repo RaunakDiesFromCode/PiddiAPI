@@ -7,7 +7,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from piddi.paths import get_bundle_dir, get_user_piddi_home
+from piddi.paths import get_bundle_dir, get_user_piddi_home, resolve_desktop_workspace
 
 try:
     from dotenv import find_dotenv, load_dotenv
@@ -47,7 +47,7 @@ class AppConfig(BaseModel):
     host: str = "127.0.0.1"
     port: int = 4111
     session_token: str = Field(default_factory=_default_session_token)
-    workspace_path: Path = Field(default_factory=lambda: Path(os.getcwd()).resolve())
+    workspace_path: Path = Field(default_factory=resolve_desktop_workspace)
     temp_dir: Path = Field(default_factory=lambda: get_user_piddi_home() / "temp")
     max_payload_size_bytes: int = 50 * 1024 * 1024  # 50 MB
     debug: bool = Field(default_factory=_is_dev_mode)

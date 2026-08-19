@@ -386,7 +386,7 @@ PiddiAPI fully supports running multiple concurrent instances:
 |---|---|---|---|---|
 | **macOS** | Apple Silicon (`arm64`) | macOS 12.0+ (Monterey+) | `PiddiAPI-darwin-arm64.dmg` containing `PiddiAPI.app` | macOS `arm64` Runner |
 | **macOS** | Intel (`x86_64`) | macOS 11.0+ (Big Sur+) | `PiddiAPI-darwin-x64.dmg` containing `PiddiAPI.app` | macOS `x86_64` Runner |
-| **Windows** | x64 (`AMD64`) | Windows 10 / 11 (x64) | `PiddiAPI-windows-x64.zip` containing `PiddiAPI/` app directory | Windows Runner |
+| **Windows** | x64 (`AMD64`) | Windows 10 / 11 (x64) | `PiddiAPI-Setup.exe` (Inno Setup Installer) & `dist/PiddiAPI/` app directory | Windows Runner |
 | **Linux** | x64 (`x86_64`) | Ubuntu 20.04+, Debian 11+, Fedora 36+ (GLIBC ≥ 2.31) | `PiddiAPI-linux-x64.tar.gz` containing `PiddiAPI/` app directory | Linux x64 Runner |
 
 ---

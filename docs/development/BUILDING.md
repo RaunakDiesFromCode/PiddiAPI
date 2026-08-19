@@ -174,6 +174,7 @@ Upon a successful build, the following files are produced in `dist/`:
 
 | Path | Type | Description |
 | :--- | :--- | :--- |
+| `dist/installer/PiddiAPI-Setup.exe` | Windows Inno Setup Installer | Official Windows setup installer wizard with Desktop/Start Menu shortcut integration. |
 | `dist/PiddiAPI/PiddiAPI.exe` | Windows PE Executable | Main entrypoint binary with embedded icon and console window integration. |
 | `dist/PiddiAPI/_internal/` | Directory | Bundled Python runtime, C-extensions, stdlib `.pyz`, and `piddi/static/` assets. |
 | `dist/BUILD_MANIFEST.json` | JSON Document | Verifiable build record containing checksums, platform metadata, and invariant checks. |
@@ -274,8 +275,8 @@ It is critical to distinguish build artifacts from user data across all operatin
 
 | Classification | File Path (Windows) | File Path (macOS / Linux) | Commit to Git? |
 | :--- | :--- | :--- | :--- |
-| **Application Package** | `dist/PiddiAPI/` | `dist/PiddiAPI.app` | ❌ No (`.gitignore`) |
+| **Application Package** | `dist/installer/PiddiAPI-Setup.exe` / `dist/PiddiAPI/` | `dist/PiddiAPI.app` | ❌ No (`.gitignore`) |
 | **Intermediate Build Cache** | `build/` | `build/` | ❌ No (`.gitignore`) |
-| **Global User Preferences** | `%USERPROFILE%\.piddi\preferences.json` | `~/.piddi/preferences.json` | ❌ No (User Home) |
-| **Global Runtime Logs** | `%USERPROFILE%\.piddi\piddi.log` | `~/.piddi/piddi.log` | ❌ No (User Home) |
-| **Project Workspace Data** | `<workspace>\.piddi\` | `<workspace>/.piddi/` | ✅ Yes (`.piddi/environments/*.secrets.json` ignored) |
+| **Global User Preferences** | `%USERPROFILE%\Documents\.piddi\preferences.json` | `~/.piddi/preferences.json` | ❌ No (User Profile) |
+| **Global Runtime Logs** | `%USERPROFILE%\Documents\.piddi\piddi.log` | `~/.piddi/piddi.log` | ❌ No (User Profile) |
+| **Project Workspace Data** | `%USERPROFILE%\Documents\.piddi\` or `<workspace>\.piddi\` | `<workspace>/.piddi/` | ✅ Yes (`.piddi/environments/*.secrets.json` ignored) |

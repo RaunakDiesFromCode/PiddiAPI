@@ -19,8 +19,10 @@ class PreferencesManager:
 
     @staticmethod
     def get_preferences_path() -> Path:
-        """Get the preferences file path in user home directory."""
-        return Path.home().resolve() / ".piddi" / "preferences.json"
+        """Get the preferences file path in user profile directory."""
+        from piddi.paths import get_user_piddi_home
+
+        return (get_user_piddi_home() / "preferences.json").resolve()
 
     @classmethod
     async def load_preferences(cls) -> UserPreferences:

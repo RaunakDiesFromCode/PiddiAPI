@@ -170,8 +170,10 @@ class HistoryManager:
     PRUNE_THRESHOLD: int = 250
 
     def __init__(self, history_file_path: Path | None = None) -> None:
+        from piddi.paths import get_user_piddi_home
+
         self.history_file_path = (
-            history_file_path or (Path.home() / ".piddi" / "history.jsonl")
+            history_file_path or (get_user_piddi_home() / "history.jsonl")
         ).resolve()
         self._lock = asyncio.Lock()
         self._pending_tasks: set[asyncio.Task[None]] = set()

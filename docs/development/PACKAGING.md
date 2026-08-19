@@ -53,11 +53,14 @@ python scripts/generate_icons.py
 
 ## 3. Application Package Layouts
 
-### 3.1. Windows Application Package (`dist/PiddiAPI/`)
+### 3.1. Windows Application Package (`dist/PiddiAPI/`) & Inno Setup Installer (`dist/installer/PiddiAPI-Setup.exe`)
 
-On Windows, the build generates a self-contained application directory at `dist/PiddiAPI/`:
+On Windows, the PyInstaller build generates a self-contained application directory at `dist/PiddiAPI/`, and Inno Setup compiles the official native installer to `dist/installer/PiddiAPI-Setup.exe`:
 
 ```text
+dist/installer/
+└── PiddiAPI-Setup.exe                # Native Windows Inno Setup installer
+
 dist/PiddiAPI/
 ├── PiddiAPI.exe                      # Native compiled Windows entrypoint (PE binary with embedded ICO)
 └── _internal/                        # Bundled Python runtime, C-extensions, stdlib .pyz
@@ -259,6 +262,6 @@ Every packaging run produces `dist/BUILD_MANIFEST.json`, which computes SHA-256 
 
 | Platform | Target Package | Icon | Status | Verification Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| **Windows (x64)** | `dist/PiddiAPI/` with `PiddiAPI.exe` (ONEDIR) | `PiddiAPI.ico` | **BUILT & RUNTIME VERIFIED** | Tested on Windows 10/11 x64. PE icon embedded, console launcher verified, readiness polling verified, browser auto-launch verified, and graceful shutdown verified. |
+| **Windows (x64)** | `dist/installer/PiddiAPI-Setup.exe` & `dist/PiddiAPI/` (ONEDIR) | `PiddiAPI.ico` | **BUILT & RUNTIME VERIFIED** | Tested on Windows 10/11 x64. Inno Setup installer, PE icon, console launcher, user storage in Documents\.piddi, readiness polling, browser auto-launch, and graceful shutdown verified. |
 | **macOS (Apple Silicon & Intel)** | `dist/PiddiAPI.app` (ONEDIR) | `PiddiAPI.icns` | **BUILT & RUNTIME VERIFIED** | Tested on macOS. Icon verified in Finder/Dock, Terminal launcher, readiness polling, browser opening, and graceful shutdown verified. |
 | **Linux (x64)** | `dist/PiddiAPI/` executable (ONEDIR) | `PiddiAPI.png` | **CONFIGURED (Spec Ready)** | `piddi.spec` configured with `PiddiAPI.png` data embedding and `console=True`. |

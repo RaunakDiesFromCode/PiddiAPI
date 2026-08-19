@@ -27,24 +27,47 @@ def get_static_dir() -> Path:
     return Path(__file__).resolve().parent / "static"
 
 
+def get_user_documents_dir() -> Path:
+    """Return the user's Documents directory, creating it if needed, or user home as fallback."""
+    docs = Path.home() / "Documents"
+    try:
+        docs.mkdir(parents=True, exist_ok=True)
+        return docs.resolve()
+    except OSError:
+        return Path.home().resolve()
+
+
 def get_user_piddi_home() -> Path:
-    """Return the global user-profile .piddi directory (~/.piddi)."""
+    """
+    Return the global user-profile .piddi directory.
+
+    On Windows: %USERPROFILE%\\Documents\\.piddi (Path.home() / "Documents" / ".piddi")
+    On macOS/Linux: ~/.piddi (Path.home() / ".piddi")
+    """
+    if sys.platform == "win32":
+        return (get_user_documents_dir() / ".piddi").resolve()
     return (Path.home() / ".piddi").resolve()
 
 
 def resolve_desktop_workspace(arg_workspace: str | None = None) -> Path:
     """
-    Resolve workspace path preserving Phase 1–5 semantics across CLI and Desktop launches.
+    Resolve workspace path preserving Phase 1–6 semantics across CLI and Desktop launches.
 
     Priority:
     1. Explicit CLI argument (if provided and != ".") -> resolve directly.
-    2. Terminal launch with default "." -> Path.cwd().resolve().
-    3. GUI Desktop launch (macOS Finder, Windows Explorer double-click):
+    2. Windows default launch (default "." or None) -> get_user_documents_dir()
+       (so that .piddi is placed in %USERPROFILE%\\Documents\\.piddi without writing to
+       the current working directory or C:\\Program Files\\PiddiAPI).
+    3. macOS/Linux Terminal launch with default "." -> Path.cwd().resolve().
+    4. macOS GUI Desktop launch (macOS Finder):
        If cwd is root ('/') or the application bundle, check ~/.piddi/preferences.json
        for last_workspace_path, or default to ~/PiddiWorkspace.
     """
     if arg_workspace and arg_workspace != ".":
         return Path(arg_workspace).resolve()
+
+    if sys.platform == "win32":
+        return get_user_documents_dir()
 
     cwd = Path(os.getcwd()).resolve()
 
